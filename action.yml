@@ -7,3 +7,13 @@ runs:
 branding:
   icon: 'settings'  
   color: 'orange'
+inputs:
+  path:
+    description: 'Path to mod source folder'
+    default: '.'
+  factorio_user:
+    description: 'Factorio mod portal user name'
+    required: true
+  factorio_password:
+    description: 'Factorio mod portal password'
+    required: true
