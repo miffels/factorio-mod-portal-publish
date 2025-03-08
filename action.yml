@@ -1,5 +1,5 @@
 name: 'Factorio Mod Portal Publish'
-author: 'Shane Madden'
+author: 'Shane Madden (OG) & Michael Jess (variable workdir & 2.0.0 mod API update)'
 description: 'Publishes repos with Factorio mods to the Factorio mod portal'
 runs:
   using: 'docker'
@@ -11,9 +11,6 @@ inputs:
   path:
     description: 'Path to mod source folder'
     default: '.'
-  factorio_user:
-    description: 'Factorio mod portal user name'
-    required: true
-  factorio_password:
-    description: 'Factorio mod portal password'
+  mod_api_key:
+    description: 'Mod portal upload API key. See https://wiki.factorio.com/Mod_upload_API'
     required: true
