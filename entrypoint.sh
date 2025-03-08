@@ -13,6 +13,7 @@ NAME=$(jq -r '.name' info.json)
 FILE=${NAME}_${VERSION}.zip
 
 # Create the zip
+git config --global --add safe.directory /github/workspace
 git archive --prefix "${NAME}_$VERSION/" -o "${NAME}_$VERSION.zip" HEAD
 FILESIZE=$(stat --printf="%s" "${FILE}")
 echo "File zipped, ${FILESIZE} bytes"
