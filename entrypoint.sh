@@ -54,6 +54,7 @@ THUMBNAIL=$(echo "${UPLOAD_RESULT}" | jq -r '.thumbnail // empty')
 
 if [[ "${FILENAME}" == "null" ]] || [[ -z "${FILENAME}" ]]; then
     echo "Upload failed"
+    echo "${UPLOAD_RESULT}"
     exit 1
 fi
 echo "Uploaded ${FILE} to ${FILENAME}, submitting as new version"
