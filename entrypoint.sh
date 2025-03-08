@@ -19,13 +19,8 @@ FILESIZE=$(stat --printf="%s" "${FILE}")
 echo "File zipped, ${FILESIZE} bytes"
 unzip -v "${FILE}"
 
-### here
-
-# Get a CSRF token by loading the login form
-CSRF=$(curl -b cookiejar.txt -c cookiejar.txt -s https://factorio.com/login?mods=1 | grep csrf_token | sed -r -e 's/.*value="(.*)".*/\1/')
-
 # Query the mod info, verify the version number we're trying to push doesn't already exist
-curl -b cookiejar.txt -c cookiejar.txt -s "https://mods.factorio.com/api/mods/${NAME}/full" | jq -e ".releases[] | select(.version == \"${VERSION}\")"
+curl -s "https://mods.factorio.com/api/mods/${NAME}/full" | jq -e ".releases[] | select(.version == \"${VERSION}\")"
 # store the return code before running anything else
 STATUS_CODE=$?
 
