@@ -1,4 +1,4 @@
-FROM debian:12-slim
+FROM debian:stable-slim
 
 LABEL "com.github.actions.name"="Factorio Mod Portal Publish"
 LABEL "com.github.actions.description"="Publishes repos with Factorio mods to the Factorio mod portal"
