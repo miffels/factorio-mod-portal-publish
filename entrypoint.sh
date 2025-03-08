@@ -34,7 +34,9 @@ AUTH_HEADER="Authorization: Bearer ${INPUT_MOD_API_KEY}"
 
 # https://wiki.factorio.com/Mod_publish_API
 
-INIT_PUBLISH_RESULT=$(curl -s --data "{\"mod\":\"${NAME}\"}" -H "Content-Type: application/json" "https://mods.factorio.com/api/v2/mods/init_publish" -H "${AUTH_HEADER}" -X POST)
+function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
+
+INIT_PUBLISH_RESULT=urldecode $(curl -s --data "{\"mod\":\"${NAME}\"}" -H "Content-Type: application/json" "https://mods.factorio.com/api/v2/mods/init_publish" -H "${AUTH_HEADER}" -X POST)
 
 PUBLISH_URL=$(echo "${INIT_PUBLISH_RESULT}" | jq -r '@uri "\(.upload_url)"')
 PUBLISH_ERROR=$(echo "${INIT_PUBLISH_RESULT}" | jq -r '@uri "\(.error)"')
