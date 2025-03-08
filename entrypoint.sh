@@ -19,6 +19,8 @@ FILESIZE=$(stat --printf="%s" "${FILE}")
 echo "File zipped, ${FILESIZE} bytes"
 unzip -v "${FILE}"
 
+### here
+
 # Get a CSRF token by loading the login form
 CSRF=$(curl -b cookiejar.txt -c cookiejar.txt -s https://factorio.com/login?mods=1 | grep csrf_token | sed -r -e 's/.*value="(.*)".*/\1/')
 
@@ -43,26 +45,37 @@ if [[ -z "${UPLOAD_TOKEN}" ]]; then
     exit 1
 fi
 
-# Upload the file, getting back a response with details to send in the final form submission to complete the upload
-UPLOAD_RESULT=$(curl -b cookiejar.txt -c cookiejar.txt -s -F "file=@${FILE};type=application/x-zip-compressed" "https://direct.mods-data.factorio.com/upload/mod/${UPLOAD_TOKEN}")
+# POST 
+AUTH_HEADER="Authorization: Bearer ${INPUT_MOD_API_KEY}"
 
-# Parse 'em and stat the file for the form fields
-CHANGELOG=$(echo "${UPLOAD_RESULT}" | jq -r '@uri "\(.changelog)"')
-INFO=$(echo "${UPLOAD_RESULT}" | jq -r '@uri "\(.info)"')
-FILENAME=$(echo "${UPLOAD_RESULT}" | jq -r '.filename')
-THUMBNAIL=$(echo "${UPLOAD_RESULT}" | jq -r '.thumbnail // empty')
+# https://wiki.factorio.com/Mod_publish_API
 
-if [[ "${FILENAME}" == "null" ]] || [[ -z "${FILENAME}" ]]; then
-    echo "Upload failed"
-    echo "${UPLOAD_RESULT}"
+INIT_PUBLISH_RESULT=$(curl -s --data "{\"name\":\"${NAME}\"}" "https://mods.factorio.com/api/v2/mods/init_publish" -H "${AUTH_HEADER}" -X POST)
+
+PUBLISH_URL=$(echo "${INIT_PUBLISH_RESULT}" | jq -r '@uri "\(.upload_url)"')
+PUBLISH_ERROR=$(echo "${INIT_PUBLISH_RESULT}" | jq -r '@uri "\(.error)"')
+PUBLISH_MESSAGE=$(echo "${INIT_PUBLISH_RESULT}" | jq -r '@uri "\(.message)"')
+
+if [[ "${PUBLISH_ERROR}" != "null" ]]; then
+    echo "Init upload failed:"
+    echo "${PUBLISH_ERROR}"
+    echo "${PUBLISH_MESSAGE}"
     exit 1
 fi
-echo "Uploaded ${FILE} to ${FILENAME}, submitting as new version"
 
-# Post the form, completing the release
-curl -b cookiejar.txt -c cookiejar.txt -s -X POST -d "file=&info_json=${INFO}&changelog=${CHANGELOG}&filename=${FILENAME}&file_size=${FILESIZE}&thumbnail=${THUMBNAIL}" -H "Content-Type: application/x-www-form-urlencoded" -o /dev/null "https://mods.factorio.com/mod/${NAME}/downloads/edit"
-# TODO if that had a failure exit code then report failure, exit 1
+FINISH_PUBLISH_RESULT=$(curl -s -X POST -F "file=@${FILE};type=application/x-zip-compressed" -o /dev/null "${PUBLISH_URL}")
+
+PUBLISHED_URL=$(echo "${FINISH_PUBLISH_RESULT}" | jq -r '@uri "\(.url)"')
+PUBLISH_ERROR=$(echo "${FINISH_PUBLISH_RESULT}" | jq -r '@uri "\(.error)"')
+PUBLISH_MESSAGE=$(echo "${FINISH_PUBLISH_RESULT}" | jq -r '@uri "\(.message)"')
+
+if [[ "${PUBLISH_ERROR}" != "null" ]]; then
+    echo "Init upload failed:"
+    echo "${PUBLISH_ERROR}"
+    echo "${PUBLISH_MESSAGE}"
+    exit 1
+fi
 
 popd
 
-echo "Completed"
+echo "Mod published under ${PUBLISHED_URL}"
